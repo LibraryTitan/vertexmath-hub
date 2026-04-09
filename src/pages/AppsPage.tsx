@@ -35,7 +35,11 @@ export default function AppsPage() {
   const handleAppClick = async (app: typeof apps[0]) => {
     try {
       const token = await getCustomTokenForRedirect()
-      window.location.href = `${app.url}?authToken=${token}`
+      if (token) {
+        window.location.href = `${app.url}?authToken=${encodeURIComponent(token)}`
+      } else {
+        window.location.href = app.url
+      }
     } catch {
       // Fallback: just redirect without SSO token
       window.location.href = app.url

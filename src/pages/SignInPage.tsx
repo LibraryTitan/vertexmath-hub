@@ -12,6 +12,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [needsRole, setNeedsRole] = useState(false)
 
   if (user) {
     navigate('/apps', { replace: true })
@@ -46,7 +47,25 @@ export default function SignInPage() {
       await signInWithGoogle()
       navigate('/apps')
     } catch (err: any) {
-      setError(err.message || 'Google sign-in failed.')
+      if (err.code === 'auth/no-account') {
+        setNeedsRole(true)
+        setError(null)
+      } else {
+        setError(err.message || 'Google sign-in failed.')
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleRoleSelect = async (role: 'student' | 'teacher') => {
+    setError(null)
+    setSubmitting(true)
+    try {
+      await signInWithGoogle(role)
+      navigate('/apps')
+    } catch (err: any) {
+      setError(err.message || 'Account creation failed.')
     } finally {
       setSubmitting(false)
     }
@@ -64,21 +83,44 @@ export default function SignInPage() {
 
             {error && <Alert severity="error">{error}</Alert>}
 
-            <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth>
-              Sign in with Google
-            </Button>
-
-            <Divider>or</Divider>
-
-            <form onSubmit={handleSubmit}>
-              <Stack spacing={2}>
-                <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth autoFocus />
-                <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
-                <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth>
-                  {submitting ? <CircularProgress size={24} /> : 'Sign In'}
+            {needsRole ? (
+              <>
+                <Typography sx={{ textAlign: 'center', fontWeight: 600 }}>
+                  No account found. Select your role to create one:
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <Button variant="contained" size="large" onClick={() => handleRoleSelect('student')} disabled={submitting} fullWidth
+                    sx={{ bgcolor: '#1976d2', '&:hover': { bgcolor: '#1565c0' } }}>
+                    {submitting ? <CircularProgress size={24} /> : "I'm a Student"}
+                  </Button>
+                  <Button variant="contained" size="large" onClick={() => handleRoleSelect('teacher')} disabled={submitting} fullWidth
+                    sx={{ bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b9a' } }}>
+                    {submitting ? <CircularProgress size={24} /> : "I'm a Teacher"}
+                  </Button>
+                </Stack>
+                <Button variant="text" size="small" onClick={() => setNeedsRole(false)} sx={{ textTransform: 'none' }}>
+                  ← Back to Sign In
                 </Button>
-              </Stack>
-            </form>
+              </>
+            ) : (
+              <>
+                <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth>
+                  Sign in with Google
+                </Button>
+
+                <Divider>or</Divider>
+
+                <form onSubmit={handleSubmit}>
+                  <Stack spacing={2}>
+                    <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth autoFocus />
+                    <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
+                    <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth>
+                      {submitting ? <CircularProgress size={24} /> : 'Sign In'}
+                    </Button>
+                  </Stack>
+                </form>
+              </>
+            )}
 
             <Typography sx={{ textAlign: 'center' }} color="text.secondary">
               Don't have an account?{' '}

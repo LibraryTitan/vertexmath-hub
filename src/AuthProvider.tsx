@@ -142,6 +142,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         googleLinked: true,
         createdAt: serverTimestamp(),
       }, { merge: true })
+    } else if (!snap.exists()) {
+      // No account exists and no role specified — sign out and require role selection
+      await firebaseSignOut(auth)
+      const err = new Error('No account found for this Google account. Please select your role.')
+      ;(err as any).code = 'auth/no-account'
+      throw err
     }
     setCrossAppSession()
   }, [])
