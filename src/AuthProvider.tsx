@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, getDocs, query, collection, where, serverTimestamp, arrayUnion } from 'firebase/firestore'
 import { auth, db } from './firebase'
-import { setCrossAppSession, clearCrossAppSession, exchangeSessionCookie, handleSSOToken } from './sso'
+import { setCrossAppSession, clearCrossAppSession, revokeAllSessions, exchangeSessionCookie, handleSSOToken } from './sso'
 
 interface AuthContextValue {
   user: User | null
@@ -109,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         apps: arrayUnion('hub', 'vmo'),
         createdAt: serverTimestamp(),
       }, { merge: true })
+      setUserRole('student')
+      setFirstName(profile.firstName.trim())
       setCrossAppSession()
     } catch (err) {
       // Clean up auth user if Firestore write failed (but not for username-taken)
@@ -140,6 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         apps: arrayUnion('hub', 'pb', 'vmo'),
         createdAt: serverTimestamp(),
       }, { merge: true })
+      setUserRole('teacher')
+      setFirstName(profile.firstName.trim())
       setCrossAppSession()
     } catch (err) {
       if ((err as Error).message !== 'Username is already taken') {
@@ -167,18 +171,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         googleLinked: true,
         createdAt: serverTimestamp(),
       }, { merge: true })
+      setUserRole(role)
+      setFirstName(first || '')
     } else if (!snap.exists()) {
       // No account exists and no role specified — sign out and require role selection
       await firebaseSignOut(auth)
       const err = new Error('No account found for this Google account. Please select your role.')
       ;(err as any).code = 'auth/no-account'
       throw err
+    } else {
+      // Existing account — set role immediately to avoid race with onAuthStateChanged
+      const data = snap.data()
+      setUserRole(data.role || 'student')
+      setFirstName(data.firstName || cred.user.displayName?.split(' ')[0] || null)
     }
     setCrossAppSession()
   }, [])
 
   const signOutFn = useCallback(async () => {
     clearCrossAppSession()
+    await revokeAllSessions()
     await firebaseSignOut(auth)
   }, [])
 

@@ -19,6 +19,16 @@ export function clearCrossAppSession(): void {
   document.cookie = 'vertexmath_session=; domain=.vertexmath.org; secure; samesite=lax; path=/; max-age=0'
 }
 
+/** Revoke all cross-app sessions in Firestore for the current user */
+export async function revokeAllSessions(): Promise<void> {
+  try {
+    const revoke = httpsCallable(functions, 'revokeAllSessions')
+    await revoke()
+  } catch (err) {
+    console.warn('[SSO] Failed to revoke sessions:', err)
+  }
+}
+
 /** Get a custom token for navigating to another app */
 export async function getCustomTokenForRedirect(): Promise<string | null> {
   try {

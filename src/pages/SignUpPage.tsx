@@ -18,7 +18,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  if (user) {
+  if (user && !submitting && !error) {
     navigate('/apps', { replace: true })
     return null
   }
