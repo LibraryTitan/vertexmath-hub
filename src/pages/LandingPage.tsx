@@ -19,7 +19,7 @@ export default function LandingPage() {
       <Container maxWidth="md">
         <Stack spacing={4} sx={{ alignItems: 'center' }}>
           {/* Logo */}
-          <Box component="img" src="/logo/logo_transparent.png" alt="VertexMath" sx={{ width: 80, height: 80 }} />
+          <Box component="img" src="/logo/logo_transparent.png" alt="VertexMath" sx={{ height: 64, width: 'auto', objectFit: 'contain' }} />
 
           <Typography variant="h3" sx={{ textAlign: 'center' }} color="text.primary">
             Welcome to VertexMath

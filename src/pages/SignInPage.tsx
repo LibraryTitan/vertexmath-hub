@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Box, TextField, Button, Typography, Container, Paper, Stack, Divider, Alert, CircularProgress } from '@mui/material'
+import { Box, TextField, Button, Typography, Container, Paper, Stack, Divider, Alert, CircularProgress, IconButton } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 
@@ -76,7 +77,12 @@ export default function SignInPage() {
       <Container maxWidth="sm">
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
           <Stack spacing={3}>
-            <Typography variant="h4" sx={{ textAlign: 'center' }}>Sign In</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={() => navigate('/')} sx={{ mr: 1 }} aria-label="Back to home">
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h4" sx={{ flex: 1, textAlign: 'center', mr: 5 }}>Sign In</Typography>
+            </Box>
             <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
               Welcome back to VertexMath
             </Typography>

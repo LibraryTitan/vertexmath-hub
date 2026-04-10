@@ -36,8 +36,16 @@ export default function AppsPage() {
     try {
       const token = await getCustomTokenForRedirect()
       if (token) {
+        console.log(`[SSO] Hub → ${app.id.toUpperCase()} redirect:`, {
+          email: user?.email,
+          uid: user?.uid,
+          role: userRole,
+          targetApp: app.id,
+          tokenLength: token.length,
+        })
         window.location.href = `${app.url}?authToken=${encodeURIComponent(token)}`
       } else {
+        console.warn(`[SSO] Hub → ${app.id.toUpperCase()}: token is null, redirecting without SSO`)
         window.location.href = app.url
       }
     } catch {
