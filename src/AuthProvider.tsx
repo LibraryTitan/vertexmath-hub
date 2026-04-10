@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
+  deleteUser,
   type User,
 } from 'firebase/auth'
 import { doc, getDoc, setDoc, getDocs, query, collection, where, serverTimestamp, arrayUnion } from 'firebase/firestore'
@@ -88,40 +89,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signUpStudent = useCallback(async (email: string, password: string, profile: { firstName: string; lastName: string; username: string }) => {
-    // Validate username uniqueness
-    const q = query(collection(db, 'users'), where('usernameLower', '==', profile.username.toLowerCase()))
-    const snap = await getDocs(q)
-    if (!snap.empty) throw new Error('Username is already taken')
-
+    // Create auth user first (signs them in so Firestore queries work)
     const cred = await createUserWithEmailAndPassword(auth, email, password)
-    await setDoc(doc(db, 'users', cred.user.uid), {
-      firstName: profile.firstName.trim(),
-      lastName: profile.lastName.trim(),
-      username: profile.username,
-      usernameLower: profile.username.toLowerCase(),
-      role: 'student',
-      apps: arrayUnion('hub', 'vmo'),
-      createdAt: serverTimestamp(),
-    }, { merge: true })
-    setCrossAppSession()
+    try {
+      // Validate username uniqueness (now authenticated)
+      const q = query(collection(db, 'users'), where('usernameLower', '==', profile.username.toLowerCase()))
+      const snap = await getDocs(q)
+      if (!snap.empty) {
+        await deleteUser(cred.user)
+        throw new Error('Username is already taken')
+      }
+
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
+        username: profile.username,
+        usernameLower: profile.username.toLowerCase(),
+        role: 'student',
+        apps: arrayUnion('hub', 'vmo'),
+        createdAt: serverTimestamp(),
+      }, { merge: true })
+      setCrossAppSession()
+    } catch (err) {
+      // Clean up auth user if Firestore write failed (but not for username-taken)
+      if ((err as Error).message !== 'Username is already taken') {
+        await deleteUser(cred.user).catch(() => {})
+      }
+      throw err
+    }
   }, [])
 
   const signUpTeacher = useCallback(async (email: string, password: string, profile: { firstName: string; lastName: string; username: string }) => {
-    const q = query(collection(db, 'users'), where('usernameLower', '==', profile.username.toLowerCase()))
-    const snap = await getDocs(q)
-    if (!snap.empty) throw new Error('Username is already taken')
-
+    // Create auth user first (signs them in so Firestore queries work)
     const cred = await createUserWithEmailAndPassword(auth, email, password)
-    await setDoc(doc(db, 'users', cred.user.uid), {
-      firstName: profile.firstName.trim(),
-      lastName: profile.lastName.trim(),
-      username: profile.username,
-      usernameLower: profile.username.toLowerCase(),
-      role: 'teacher',
-      apps: arrayUnion('hub', 'pb', 'vmo'),
-      createdAt: serverTimestamp(),
-    }, { merge: true })
-    setCrossAppSession()
+    try {
+      // Validate username uniqueness (now authenticated)
+      const q = query(collection(db, 'users'), where('usernameLower', '==', profile.username.toLowerCase()))
+      const snap = await getDocs(q)
+      if (!snap.empty) {
+        await deleteUser(cred.user)
+        throw new Error('Username is already taken')
+      }
+
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
+        username: profile.username,
+        usernameLower: profile.username.toLowerCase(),
+        role: 'teacher',
+        apps: arrayUnion('hub', 'pb', 'vmo'),
+        createdAt: serverTimestamp(),
+      }, { merge: true })
+      setCrossAppSession()
+    } catch (err) {
+      if ((err as Error).message !== 'Username is already taken') {
+        await deleteUser(cred.user).catch(() => {})
+      }
+      throw err
+    }
   }, [])
 
   const signInWithGoogleFn = useCallback(async (role?: 'student' | 'teacher') => {
