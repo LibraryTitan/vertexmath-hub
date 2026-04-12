@@ -14,7 +14,7 @@ export default function DashboardLayout({ role }: DashboardLayoutProps) {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: c.background }}>
       <DashboardSidebar role={role} />
-      <DashboardTopBar />
+      <DashboardTopBar role={role} />
 
       {/* Main content area */}
       <Box

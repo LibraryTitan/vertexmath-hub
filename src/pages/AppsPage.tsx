@@ -1,6 +1,8 @@
 import { Box, Container, Typography, Grid, CardContent, Stack, Button, Avatar, Chip } from '@mui/material'
 import SchoolIcon from '@mui/icons-material/School'
 import DescriptionIcon from '@mui/icons-material/Description'
+import GroupsIcon from '@mui/icons-material/Groups'
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { useNavigate } from 'react-router-dom'
@@ -9,7 +11,18 @@ import { getCustomTokenForRedirect } from '../sso'
 import { motion } from 'framer-motion'
 import { darkColors, motion as motionTokens } from '../theme/designTokens'
 
-const apps = [
+type HubApp = {
+  id: string
+  title: string
+  subtitle: string
+  icon: React.ReactNode
+  color: string
+  roles: string[]
+  url?: string
+  route?: string
+}
+
+const apps: HubApp[] = [
   {
     id: 'vmo',
     title: 'VertexMath Online',
@@ -28,6 +41,24 @@ const apps = [
     url: 'https://builder.vertexmath.org',
     roles: ['teacher', 'orgAdmin', 'superAdmin'],
   },
+  {
+    id: 'teacher-portal',
+    title: 'Teacher Portal',
+    subtitle: 'Classes, assignments, analytics and question banks',
+    icon: <GroupsIcon sx={{ fontSize: 48 }} />,
+    color: '#0ea5a4',
+    route: '/teacher',
+    roles: ['teacher', 'orgAdmin', 'superAdmin'],
+  },
+  {
+    id: 'admin-portal',
+    title: 'Admin Portal',
+    subtitle: 'Users, organizations, subscriptions and licenses',
+    icon: <AdminPanelSettingsIcon sx={{ fontSize: 48 }} />,
+    route: '/admin',
+    color: '#f59e0b',
+    roles: ['orgAdmin', 'superAdmin'],
+  },
 ]
 
 export default function AppsPage() {
@@ -35,7 +66,12 @@ export default function AppsPage() {
   const { user, userRole, firstName, signOut } = useAuth()
   const c = darkColors
 
-  const handleAppClick = async (app: typeof apps[0]) => {
+  const handleAppClick = async (app: HubApp) => {
+    if (app.route) {
+      navigate(app.route)
+      return
+    }
+
     try {
       const token = await getCustomTokenForRedirect()
       if (token) {
@@ -49,11 +85,11 @@ export default function AppsPage() {
         window.location.href = `${app.url}?authToken=${encodeURIComponent(token)}`
       } else {
         console.warn(`[SSO] Hub → ${app.id.toUpperCase()}: token is null, redirecting without SSO`)
-        window.location.href = app.url
+        window.location.href = app.url || '/apps'
       }
     } catch {
       // Fallback: just redirect without SSO token
-      window.location.href = app.url
+      window.location.href = app.url || '/apps'
     }
   }
 

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Box, Container, Typography, Stack, TextField, Button, Alert, CircularProgress, Divider } from '@mui/material'
+import { useState, useEffect, useMemo } from 'react'
+import { Box, Container, Typography, Stack, TextField, Button, Alert, CircularProgress, Divider, Avatar } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
@@ -22,6 +22,11 @@ export default function AccountPage() {
   const navigate = useNavigate()
   const { user, userRole } = useAuth()
   const c = darkColors
+  const avatarLabel = useMemo(() => {
+    return user?.displayName?.trim()?.[0]?.toUpperCase()
+      || user?.email?.[0]?.toUpperCase()
+      || 'U'
+  }, [user?.displayName, user?.email])
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -88,7 +93,20 @@ export default function AccountPage() {
 
           <Box sx={{ bgcolor: c.surface, borderRadius: '16px', p: 4, border: '1px solid', borderColor: c.divider }}>
             <Stack spacing={3}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: c.textPrimary }}>Account Settings</Typography>
+              <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                <Avatar
+                  src={user?.photoURL || undefined}
+                  sx={{ width: 56, height: 56, bgcolor: c.primary, color: c.onPrimary, fontWeight: 700 }}
+                >
+                  {avatarLabel}
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: c.textPrimary }}>Account Settings</Typography>
+                  <Typography sx={{ color: c.textSecondary }}>
+                    Profile, role, and basic Hub settings.
+                  </Typography>
+                </Box>
+              </Stack>
 
               {error && <Alert severity="error">{error}</Alert>}
               {success && <Alert severity="success">Profile updated!</Alert>}
