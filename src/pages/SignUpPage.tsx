@@ -1,27 +1,14 @@
 import { useState } from 'react'
-import { Box, TextField, Button, Typography, Container, Stack, Divider, Alert, CircularProgress, IconButton } from '@mui/material'
+import { Box, TextField, Button, Typography, Container, Paper, Stack, Divider, Alert, CircularProgress, IconButton } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
-import { motion } from 'framer-motion'
-import { darkColors } from '../theme/designTokens'
-
-const inputSx = {
-  '& .MuiOutlinedInput-root': {
-    bgcolor: '#1a1a1a',
-    borderRadius: '12px',
-    '& fieldset': { borderColor: 'rgba(72, 72, 71, 0.2)' },
-    '&:hover fieldset': { borderColor: 'rgba(72, 72, 71, 0.4)' },
-    '&.Mui-focused fieldset': { borderColor: '#74b9ff' },
-  },
-}
 
 export default function SignUpPage() {
   const { role } = useParams<{ role: 'student' | 'teacher' }>()
   const navigate = useNavigate()
   const { signUpStudent, signUpTeacher, signInWithGoogle, user } = useAuth()
-  const c = darkColors
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -75,80 +62,62 @@ export default function SignUpPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: c.contentBg, p: 3 }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', p: 3 }}>
       <Container maxWidth="sm">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
-          <Box sx={{ bgcolor: c.surface, borderRadius: '16px', p: 4, border: '1px solid', borderColor: c.divider }}>
-            <Stack spacing={3}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton onClick={() => navigate('/')} sx={{ mr: 1, color: c.textSecondary }} aria-label="Back to home">
-                  <ArrowBackIcon />
-                </IconButton>
-                <Typography variant="h4" sx={{ flex: 1, textAlign: 'center', mr: 5, color: c.textPrimary }}>
-                  {isTeacher ? 'Teacher Sign Up' : 'Student Sign Up'}
-                </Typography>
-              </Box>
-              <Typography sx={{ textAlign: 'center', color: c.textSecondary }}>
-                {isTeacher
-                  ? 'Create worksheets, manage classes, and access Paper Builder'
-                  : 'Start learning with interactive math lessons'}
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={() => navigate('/')} sx={{ mr: 1 }} aria-label="Back to home">
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h4" sx={{ flex: 1, textAlign: 'center', mr: 5 }}>
+                {isTeacher ? 'Teacher Sign Up' : 'Student Sign Up'}
               </Typography>
+            </Box>
+            <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
+              {isTeacher
+                ? 'Create worksheets, manage classes, and access Paper Builder'
+                : 'Start learning with interactive math lessons'}
+            </Typography>
 
-              {error && <Alert severity="error">{error}</Alert>}
+            {error && <Alert severity="error">{error}</Alert>}
 
-              <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth
-                sx={{
-                  borderRadius: '12px',
-                  borderColor: 'rgba(72, 72, 71, 0.3)',
-                  color: c.textPrimary,
-                  bgcolor: c.surfaceContainer,
-                  '&:hover': { borderColor: 'rgba(72, 72, 71, 0.5)', bgcolor: c.surfaceBright },
-                }}>
-                Sign up with Google
-              </Button>
+            <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth>
+              Sign up with Google
+            </Button>
 
-              <Divider sx={{ '&::before, &::after': { borderColor: c.divider } }}>
-                <Typography sx={{ color: c.textMuted, fontSize: '0.85rem' }}>or</Typography>
-              </Divider>
+            <Divider>or</Divider>
 
-              <form onSubmit={handleSubmit}>
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={2}>
-                    <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} required fullWidth autoFocus sx={inputSx} />
-                    <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} required fullWidth sx={inputSx} />
-                  </Stack>
-                  <TextField label="Username" value={username} onChange={e => setUsername(e.target.value)} required fullWidth
-                    helperText="3-20 characters, letters, numbers, underscores" sx={inputSx} />
-                  <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth sx={inputSx} />
-                  <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth
-                    helperText="At least 6 characters" sx={inputSx} />
-                  <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth
-                    sx={{
-                      background: isTeacher ? 'linear-gradient(135deg, #f48fb1, #e06090)' : c.primaryGradient,
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      '&:hover': {
-                        background: isTeacher ? 'linear-gradient(135deg, #e06090, #d04080)' : 'linear-gradient(135deg, #5fa5ea, #4a90d9)',
-                      },
-                    }}>
-                    {submitting ? <CircularProgress size={24} /> : 'Create Account'}
-                  </Button>
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={2}>
+                  <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} required fullWidth autoFocus />
+                  <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} required fullWidth />
                 </Stack>
-              </form>
+                <TextField label="Username" value={username} onChange={e => setUsername(e.target.value)} required fullWidth
+                  helperText="3-20 characters, letters, numbers, underscores" />
+                <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth />
+                <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth
+                  helperText="At least 6 characters" />
+                <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth
+                  color={isTeacher ? 'secondary' : 'primary'}>
+                  {submitting ? <CircularProgress size={24} /> : 'Create Account'}
+                </Button>
+              </Stack>
+            </form>
 
-              <Typography sx={{ textAlign: 'center', color: c.textSecondary }}>
-                Already have an account?{' '}
-                <Link to="/signin" style={{ color: c.primary, textDecoration: 'none', fontWeight: 600 }}>Sign In</Link>
-              </Typography>
-              <Typography sx={{ textAlign: 'center', color: c.textSecondary }} variant="body2">
-                {isTeacher ? "I'm a student → " : "I'm a teacher → "}
-                <Link to={isTeacher ? '/signup/student' : '/signup/teacher'} style={{ color: c.primary, textDecoration: 'none' }}>
-                  {isTeacher ? 'Student Sign Up' : 'Teacher Sign Up'}
-                </Link>
-              </Typography>
-            </Stack>
-          </Box>
-        </motion.div>
+            <Typography sx={{ textAlign: 'center' }} color="text.secondary">
+              Already have an account?{' '}
+              <Link to="/signin" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>Sign In</Link>
+            </Typography>
+            <Typography sx={{ textAlign: 'center' }} color="text.secondary" variant="body2">
+              {isTeacher ? "I'm a student → " : "I'm a teacher → "}
+              <Link to={isTeacher ? '/signup/student' : '/signup/teacher'} style={{ color: '#1976d2', textDecoration: 'none' }}>
+                {isTeacher ? 'Student Sign Up' : 'Teacher Sign Up'}
+              </Link>
+            </Typography>
+          </Stack>
+        </Paper>
       </Container>
     </Box>
   )

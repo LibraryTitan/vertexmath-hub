@@ -1,27 +1,14 @@
 import { useState, useEffect } from 'react'
-import { Box, Container, Typography, Stack, TextField, Button, Alert, CircularProgress, Divider } from '@mui/material'
+import { Box, Container, Typography, Paper, Stack, TextField, Button, Alert, CircularProgress, Divider } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate } from 'react-router-dom'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { useAuth } from '../AuthProvider'
 import { db } from '../firebase'
-import { motion } from 'framer-motion'
-import { darkColors } from '../theme/designTokens'
-
-const inputSx = {
-  '& .MuiOutlinedInput-root': {
-    bgcolor: '#1a1a1a',
-    borderRadius: '12px',
-    '& fieldset': { borderColor: 'rgba(72, 72, 71, 0.2)' },
-    '&:hover fieldset': { borderColor: 'rgba(72, 72, 71, 0.4)' },
-    '&.Mui-focused fieldset': { borderColor: '#74b9ff' },
-  },
-}
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const { user, userRole } = useAuth()
-  const c = darkColors
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -72,52 +59,49 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: c.contentBg }}>
-        <CircularProgress sx={{ color: c.primary }} />
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress />
       </Box>
     )
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: c.contentBg, p: 3 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', p: 3 }}>
       <Container maxWidth="sm">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
-          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/apps')} sx={{ mb: 3, textTransform: 'none', color: c.textSecondary }}>
-            Back to Apps
-          </Button>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/apps')} sx={{ mb: 3, textTransform: 'none' }}>
+          Back to Apps
+        </Button>
 
-          <Box sx={{ bgcolor: c.surface, borderRadius: '16px', p: 4, border: '1px solid', borderColor: c.divider }}>
-            <Stack spacing={3}>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: c.textPrimary }}>Account Settings</Typography>
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+          <Stack spacing={3}>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>Account Settings</Typography>
 
-              {error && <Alert severity="error">{error}</Alert>}
-              {success && <Alert severity="success">Profile updated!</Alert>}
+            {error && <Alert severity="error">{error}</Alert>}
+            {success && <Alert severity="success">Profile updated!</Alert>}
 
-              <form onSubmit={handleSave}>
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={2}>
-                    <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} required fullWidth sx={inputSx} />
-                    <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} required fullWidth sx={inputSx} />
-                  </Stack>
-                  <TextField label="Username" value={username} disabled fullWidth helperText="Username cannot be changed." sx={inputSx} />
-                  <TextField label="Email" value={email} disabled fullWidth helperText="Email cannot be changed here." sx={inputSx} />
-
-                  <Divider sx={{ borderColor: c.divider }} />
-
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                    <Typography sx={{ color: c.textSecondary }}>Role:</Typography>
-                    <Typography sx={{ fontWeight: 600, color: c.textPrimary }}>{userRole || '—'}</Typography>
-                  </Stack>
-
-                  <Button type="submit" variant="contained" size="large" disabled={saving} fullWidth
-                    sx={{ background: c.primaryGradient, borderRadius: '12px', fontWeight: 600, '&:hover': { background: 'linear-gradient(135deg, #5fa5ea, #4a90d9)' } }}>
-                    {saving ? <CircularProgress size={24} /> : 'Save Changes'}
-                  </Button>
+            <form onSubmit={handleSave}>
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={2}>
+                  <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} required fullWidth />
+                  <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} required fullWidth />
                 </Stack>
-              </form>
-            </Stack>
-          </Box>
-        </motion.div>
+                <TextField label="Username" value={username} disabled fullWidth helperText="Username cannot be changed." />
+                <TextField label="Email" value={email} disabled fullWidth helperText="Email cannot be changed here." />
+
+                <Divider />
+
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Typography color="text.secondary">Role:</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>{userRole || '—'}</Typography>
+                </Stack>
+
+                <Button type="submit" variant="contained" size="large" disabled={saving} fullWidth>
+                  {saving ? <CircularProgress size={24} /> : 'Save Changes'}
+                </Button>
+              </Stack>
+            </form>
+          </Stack>
+        </Paper>
       </Container>
     </Box>
   )
