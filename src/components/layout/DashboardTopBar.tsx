@@ -1,4 +1,4 @@
-import { Box, Typography, Avatar, InputBase } from '@mui/material'
+import { Box, Avatar, InputBase } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { darkColors, layout, blur, zIndex, FONT_BODY } from '../../theme/designTokens'
 import { useAuth } from '../../AuthProvider'
