@@ -1,13 +1,26 @@
 import { useState } from 'react'
-import { Box, TextField, Button, Typography, Container, Paper, Stack, Divider, Alert, CircularProgress, IconButton } from '@mui/material'
+import { Box, TextField, Button, Typography, Container, Stack, Divider, Alert, CircularProgress, IconButton } from '@mui/material'
 import GoogleIcon from '@mui/icons-material/Google'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
+import { motion } from 'framer-motion'
+import { darkColors } from '../theme/designTokens'
+
+const inputSx = {
+  '& .MuiOutlinedInput-root': {
+    bgcolor: '#1a1a1a',
+    borderRadius: '12px',
+    '& fieldset': { borderColor: 'rgba(72, 72, 71, 0.2)' },
+    '&:hover fieldset': { borderColor: 'rgba(72, 72, 71, 0.4)' },
+    '&.Mui-focused fieldset': { borderColor: '#74b9ff' },
+  },
+}
 
 export default function SignInPage() {
   const navigate = useNavigate()
   const { signIn, signInWithGoogle, user } = useAuth()
+  const c = darkColors
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -73,67 +86,79 @@ export default function SignInPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', p: 3 }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: c.contentBg, p: 3 }}>
       <Container maxWidth="sm">
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-          <Stack spacing={3}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={() => navigate('/')} sx={{ mr: 1 }} aria-label="Back to home">
-                <ArrowBackIcon />
-              </IconButton>
-              <Typography variant="h4" sx={{ flex: 1, textAlign: 'center', mr: 5 }}>Sign In</Typography>
-            </Box>
-            <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
-              Welcome back to VertexMath
-            </Typography>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
+          <Box sx={{ bgcolor: c.surface, borderRadius: '16px', p: 4, border: '1px solid', borderColor: c.divider }}>
+            <Stack spacing={3}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton onClick={() => navigate('/')} sx={{ mr: 1, color: c.textSecondary }} aria-label="Back to home">
+                  <ArrowBackIcon />
+                </IconButton>
+                <Typography variant="h4" sx={{ flex: 1, textAlign: 'center', mr: 5, color: c.textPrimary }}>Sign In</Typography>
+              </Box>
+              <Typography sx={{ textAlign: 'center', color: c.textSecondary }}>
+                Welcome back to VertexMath
+              </Typography>
 
-            {error && <Alert severity="error">{error}</Alert>}
+              {error && <Alert severity="error">{error}</Alert>}
 
-            {needsRole ? (
-              <>
-                <Typography sx={{ textAlign: 'center', fontWeight: 600 }}>
-                  No account found. Select your role to create one:
-                </Typography>
-                <Stack direction="row" spacing={2}>
-                  <Button variant="contained" size="large" onClick={() => handleRoleSelect('student')} disabled={submitting} fullWidth
-                    sx={{ bgcolor: '#1976d2', '&:hover': { bgcolor: '#1565c0' } }}>
-                    {submitting ? <CircularProgress size={24} /> : "I'm a Student"}
-                  </Button>
-                  <Button variant="contained" size="large" onClick={() => handleRoleSelect('teacher')} disabled={submitting} fullWidth
-                    sx={{ bgcolor: '#7b1fa2', '&:hover': { bgcolor: '#6a1b9a' } }}>
-                    {submitting ? <CircularProgress size={24} /> : "I'm a Teacher"}
-                  </Button>
-                </Stack>
-                <Button variant="text" size="small" onClick={() => setNeedsRole(false)} sx={{ textTransform: 'none' }}>
-                  ← Back to Sign In
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth>
-                  Sign in with Google
-                </Button>
-
-                <Divider>or</Divider>
-
-                <form onSubmit={handleSubmit}>
-                  <Stack spacing={2}>
-                    <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth autoFocus />
-                    <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth />
-                    <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth>
-                      {submitting ? <CircularProgress size={24} /> : 'Sign In'}
+              {needsRole ? (
+                <>
+                  <Typography sx={{ textAlign: 'center', fontWeight: 600, color: c.textPrimary }}>
+                    No account found. Select your role to create one:
+                  </Typography>
+                  <Stack direction="row" spacing={2}>
+                    <Button variant="contained" size="large" onClick={() => handleRoleSelect('student')} disabled={submitting} fullWidth
+                      sx={{ background: c.primaryGradient, borderRadius: '12px', '&:hover': { background: 'linear-gradient(135deg, #5fa5ea, #4a90d9)' } }}>
+                      {submitting ? <CircularProgress size={24} /> : "I'm a Student"}
+                    </Button>
+                    <Button variant="contained" size="large" onClick={() => handleRoleSelect('teacher')} disabled={submitting} fullWidth
+                      sx={{ background: 'linear-gradient(135deg, #f48fb1, #e06090)', borderRadius: '12px', '&:hover': { background: 'linear-gradient(135deg, #e06090, #d04080)' } }}>
+                      {submitting ? <CircularProgress size={24} /> : "I'm a Teacher"}
                     </Button>
                   </Stack>
-                </form>
-              </>
-            )}
+                  <Button variant="text" size="small" onClick={() => setNeedsRole(false)} sx={{ textTransform: 'none', color: c.primary }}>
+                    ← Back to Sign In
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outlined" size="large" startIcon={<GoogleIcon />} onClick={handleGoogle} disabled={submitting} fullWidth
+                    sx={{
+                      borderRadius: '12px',
+                      borderColor: 'rgba(72, 72, 71, 0.3)',
+                      color: c.textPrimary,
+                      bgcolor: c.surfaceContainer,
+                      '&:hover': { borderColor: 'rgba(72, 72, 71, 0.5)', bgcolor: c.surfaceBright },
+                    }}>
+                    Sign in with Google
+                  </Button>
 
-            <Typography sx={{ textAlign: 'center' }} color="text.secondary">
-              Don't have an account?{' '}
-              <Link to="/" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 600 }}>Get Started</Link>
-            </Typography>
-          </Stack>
-        </Paper>
+                  <Divider sx={{ '&::before, &::after': { borderColor: c.divider } }}>
+                    <Typography sx={{ color: c.textMuted, fontSize: '0.85rem' }}>or</Typography>
+                  </Divider>
+
+                  <form onSubmit={handleSubmit}>
+                    <Stack spacing={2}>
+                      <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} required fullWidth autoFocus sx={inputSx} />
+                      <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} required fullWidth sx={inputSx} />
+                      <Button type="submit" variant="contained" size="large" disabled={submitting} fullWidth
+                        sx={{ background: c.primaryGradient, borderRadius: '12px', fontWeight: 600, '&:hover': { background: 'linear-gradient(135deg, #5fa5ea, #4a90d9)' } }}>
+                        {submitting ? <CircularProgress size={24} /> : 'Sign In'}
+                      </Button>
+                    </Stack>
+                  </form>
+                </>
+              )}
+
+              <Typography sx={{ textAlign: 'center', color: c.textSecondary }}>
+                Don't have an account?{' '}
+                <Link to="/" style={{ color: c.primary, textDecoration: 'none', fontWeight: 600 }}>Get Started</Link>
+              </Typography>
+            </Stack>
+          </Box>
+        </motion.div>
       </Container>
     </Box>
   )

@@ -1,16 +1,19 @@
 import { createTheme } from '@mui/material/styles'
+import { darkMuiPalette, FONT_STACK_HEADLINE, FONT_STACK_BODY } from './theme/designTokens'
 
 export const theme = createTheme({
   palette: {
-    primary: { main: '#1976d2' },
-    secondary: { main: '#9c27b0' },
-    background: { default: '#f5f7fa' },
+    mode: 'dark',
+    ...darkMuiPalette,
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h3: { fontWeight: 700 },
-    h4: { fontWeight: 600 },
-    h5: { fontWeight: 600 },
+    fontFamily: FONT_STACK_BODY,
+    h1: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 800 },
+    h2: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 700 },
+    h3: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 700 },
+    h4: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 600 },
+    h5: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 600 },
+    h6: { fontFamily: FONT_STACK_HEADLINE, fontWeight: 600 },
   },
   shape: { borderRadius: 12 },
   components: {
@@ -22,6 +25,16 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: { borderRadius: 16 },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: { backgroundImage: 'none' },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: { backgroundImage: 'none' },
       },
     },
   },
