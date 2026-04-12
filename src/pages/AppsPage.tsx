@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Grid, Card, CardContent, CardActionArea, Stack, Button, Avatar, Chip } from '@mui/material'
+import { Box, Container, Typography, Grid, CardContent, Stack, Button, Avatar, Chip } from '@mui/material'
 import SchoolIcon from '@mui/icons-material/School'
 import DescriptionIcon from '@mui/icons-material/Description'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
@@ -6,6 +6,8 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { getCustomTokenForRedirect } from '../sso'
+import { motion } from 'framer-motion'
+import { darkColors, motion as motionTokens } from '../theme/designTokens'
 
 const apps = [
   {
@@ -31,6 +33,7 @@ const apps = [
 export default function AppsPage() {
   const navigate = useNavigate()
   const { user, userRole, firstName, signOut } = useAuth()
+  const c = darkColors
 
   const handleAppClick = async (app: typeof apps[0]) => {
     try {
@@ -67,15 +70,22 @@ export default function AppsPage() {
   })
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: c.contentBg }}>
       {/* Top Bar */}
-      <Box sx={{ px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }} color="primary">VertexMath</Typography>
+      <Box sx={{
+        px: 3, py: 2,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        borderBottom: '1px solid',
+        borderColor: c.divider,
+        bgcolor: c.topBarBg,
+        backdropFilter: 'blur(12px)',
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: c.primary }}>VertexMath</Typography>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <Button size="small" startIcon={<AccountCircleIcon />} onClick={() => navigate('/account')} sx={{ textTransform: 'none' }}>
+          <Button size="small" startIcon={<AccountCircleIcon />} onClick={() => navigate('/account')} sx={{ textTransform: 'none', color: c.textSecondary }}>
             Account
           </Button>
-          <Button size="small" startIcon={<LogoutIcon />} onClick={handleSignOut} color="inherit" sx={{ textTransform: 'none' }}>
+          <Button size="small" startIcon={<LogoutIcon />} onClick={handleSignOut} sx={{ textTransform: 'none', color: c.textSecondary }}>
             Sign Out
           </Button>
         </Stack>
@@ -83,43 +93,70 @@ export default function AppsPage() {
 
       {/* Main Content */}
       <Container maxWidth="md" sx={{ py: 6 }}>
-        <Stack spacing={1} sx={{ mb: 5, textAlign: 'center' }}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Welcome, {displayName}!
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', alignItems: 'center' }}>
-            <Typography color="text.secondary">Your role:</Typography>
-            <Chip label={userRole || 'loading…'} size="small" color="primary" variant="outlined" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
+          <Stack spacing={1} sx={{ mb: 5, textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: c.textPrimary }}>
+              Welcome, {displayName}!
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', alignItems: 'center' }}>
+              <Typography sx={{ color: c.textSecondary }}>Your role:</Typography>
+              <Chip label={userRole || 'loading…'} size="small" sx={{
+                bgcolor: 'rgba(116, 185, 255, 0.12)',
+                color: c.primary,
+                fontWeight: 600,
+                border: `1px solid rgba(116, 185, 255, 0.25)`,
+              }} />
+            </Stack>
           </Stack>
-        </Stack>
 
-        <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
-          {visibleApps.map(app => (
-            <Grid size={{ xs: 12, sm: 6 }} key={app.id}>
-              <Card elevation={2} sx={{ borderRadius: 3, height: '100%', transition: 'box-shadow 0.2s', '&:hover': { boxShadow: 8 } }}>
-                <CardActionArea onClick={() => handleAppClick(app)} sx={{ p: 3, height: '100%' }}>
-                  <CardContent sx={{ textAlign: 'center' }}>
-                    <Avatar sx={{ bgcolor: app.color, width: 80, height: 80, mx: 'auto', mb: 2 }}>
-                      {app.icon}
-                    </Avatar>
-                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-                      {app.title}
-                    </Typography>
-                    <Typography color="text.secondary">
-                      {app.subtitle}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+          <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
+            {visibleApps.map((app, index) => (
+              <Grid size={{ xs: 12, sm: 6 }} key={app.id}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: 'spring', stiffness: 350, damping: 18, delay: index * 0.1 }}
+                >
+                  <motion.div
+                    whileHover={motionTokens.cardHover}
+                    whileTap={motionTokens.cardTap}
+                    transition={motionTokens.springDefault}
+                    style={{ cursor: 'pointer', height: '100%' }}
+                    onClick={() => handleAppClick(app)}
+                  >
+                    <Box sx={{
+                      bgcolor: c.surface,
+                      borderRadius: '16px',
+                      border: '1px solid transparent',
+                      p: 3,
+                      height: '100%',
+                      transition: 'border-color 0.2s',
+                      '&:hover': { borderColor: c.cardBorderHover },
+                    }}>
+                      <CardContent sx={{ textAlign: 'center' }}>
+                        <Avatar sx={{ bgcolor: app.color, width: 80, height: 80, mx: 'auto', mb: 2 }}>
+                          {app.icon}
+                        </Avatar>
+                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: c.textPrimary }}>
+                          {app.title}
+                        </Typography>
+                        <Typography sx={{ color: c.textSecondary }}>
+                          {app.subtitle}
+                        </Typography>
+                      </CardContent>
+                    </Box>
+                  </motion.div>
+                </motion.div>
+              </Grid>
+            ))}
+          </Grid>
 
-        {userRole === 'student' && (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-            Paper Builder is available to teachers. Ask your teacher for access!
-          </Typography>
-        )}
+          {userRole === 'student' && (
+            <Typography sx={{ textAlign: 'center', mt: 4, color: c.textSecondary }}>
+              Paper Builder is available to teachers. Ask your teacher for access!
+            </Typography>
+          )}
+        </motion.div>
       </Container>
     </Box>
   )
