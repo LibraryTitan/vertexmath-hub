@@ -5,11 +5,15 @@ import AppsIcon from '@mui/icons-material/Apps'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined'
 import LogoutIcon from '@mui/icons-material/Logout'
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
+import { useTheme } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
-import { darkColors, layout, blur, zIndex, FONT_BODY } from '../../theme/designTokens'
+import { layout, blur, zIndex, FONT_BODY } from '../../theme/designTokens'
 import { useAuth } from '../../AuthProvider'
+import { useHubColors, useHubThemeMode } from '../../themeMode'
 
 interface DashboardTopBarProps {
   role: 'teacher' | 'admin'
@@ -17,9 +21,11 @@ interface DashboardTopBarProps {
 
 export default function DashboardTopBar({ role }: DashboardTopBarProps) {
   const navigate = useNavigate()
+  const theme = useTheme()
   const { user, userRole, firstName, signOut } = useAuth()
+  const { mode, toggleMode } = useHubThemeMode()
   const [accountAnchorEl, setAccountAnchorEl] = useState<HTMLElement | null>(null)
-  const c = darkColors
+  const c = useHubColors()
   const portalLabel = role === 'admin' ? 'Admin Portal' : 'Teacher Portal'
   const searchPlaceholder = role === 'admin'
     ? 'Search users, organizations, subscriptions...'
@@ -123,16 +129,25 @@ export default function DashboardTopBar({ role }: DashboardTopBarProps) {
         <Tooltip title="App Selector">
           <IconButton
             onClick={() => navigate('/apps')}
-            sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary, backgroundColor: c.surfaceContainer } }}
+            sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary, backgroundColor: theme.palette.action.hover } }}
           >
             <AppsIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <IconButton
+            onClick={toggleMode}
+            sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary, backgroundColor: theme.palette.action.hover } }}
+          >
+            {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
 
         <Tooltip title="Profile & Settings">
           <IconButton
             onClick={() => navigate('/account')}
-            sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary, backgroundColor: c.surfaceContainer } }}
+            sx={{ color: c.textMuted, '&:hover': { color: c.textPrimary, backgroundColor: theme.palette.action.hover } }}
           >
             <SettingsOutlinedIcon fontSize="small" />
           </IconButton>

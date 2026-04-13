@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -12,15 +13,15 @@ import CardMembershipIcon from '@mui/icons-material/CardMembership'
 import VpnKeyIcon from '@mui/icons-material/VpnKey'
 import LogoutIcon from '@mui/icons-material/Logout'
 import {
-  darkColors,
   layout,
   typography as typo,
   motion as motionTokens,
   zIndex,
-  FONT_HEADLINE,
   FONT_BODY,
 } from '../../theme/designTokens'
+import VertexMathLogo from '../branding/VertexMathLogo'
 import { useAuth } from '../../AuthProvider'
+import { useHubColors } from '../../themeMode'
 
 const MotionBox = motion.create(Box)
 
@@ -54,7 +55,8 @@ export default function DashboardSidebar({ role }: DashboardSidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { signOut } = useAuth()
-  const c = darkColors
+  const theme = useTheme()
+  const c = useHubColors()
   const navItems = role === 'admin' ? adminNav : teacherNav
 
   const isActive = (path: string) => {
@@ -90,17 +92,7 @@ export default function DashboardSidebar({ role }: DashboardSidebarProps) {
           borderBottom: `1px solid ${c.sidebarBorder}`,
         }}
       >
-        <Typography
-          sx={{
-            fontFamily: FONT_HEADLINE,
-            fontSize: typo.brand.size,
-            fontWeight: typo.brand.weight,
-            letterSpacing: typo.brand.letterSpacing,
-            color: c.textPrimary,
-          }}
-        >
-          VertexMath
-        </Typography>
+        <VertexMathLogo height={34} to={`/${role}`} />
       </Box>
 
       {/* Section label */}
@@ -142,7 +134,7 @@ export default function DashboardSidebar({ role }: DashboardSidebarProps) {
                 color: active ? c.activeNavText : c.textSecondary,
                 transition: `background-color 0.15s, color 0.15s`,
                 '&:hover': {
-                  backgroundColor: active ? c.activeNavBg : 'rgba(255,255,255,0.04)',
+                  backgroundColor: active ? c.activeNavBg : theme.palette.action.hover,
                 },
               }}
             >
@@ -184,7 +176,7 @@ export default function DashboardSidebar({ role }: DashboardSidebarProps) {
             borderRadius: 1.5,
             cursor: 'pointer',
             color: c.textMuted,
-            '&:hover': { backgroundColor: 'rgba(255,255,255,0.04)', color: c.textSecondary },
+            '&:hover': { backgroundColor: theme.palette.action.hover, color: c.textSecondary },
           }}
         >
           <LogoutIcon fontSize="small" />

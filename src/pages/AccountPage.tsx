@@ -1,27 +1,33 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Box, Container, Typography, Stack, TextField, Button, Alert, CircularProgress, Divider, Avatar } from '@mui/material'
+import { Box, Container, Typography, Stack, TextField, Button, Alert, CircularProgress, Divider, Avatar, IconButton, Tooltip } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
+import { useTheme } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { useAuth } from '../AuthProvider'
 import { db } from '../firebase'
 import { motion } from 'framer-motion'
-import { darkColors } from '../theme/designTokens'
+import { useHubColors, useHubThemeMode } from '../themeMode'
 
-const inputSx = {
+const getInputSx = (borderColor: string, hoverBorderColor: string, backgroundColor: string, accentColor: string) => ({
   '& .MuiOutlinedInput-root': {
-    bgcolor: '#1a1a1a',
+    bgcolor: backgroundColor,
     borderRadius: '12px',
-    '& fieldset': { borderColor: 'rgba(72, 72, 71, 0.2)' },
-    '&:hover fieldset': { borderColor: 'rgba(72, 72, 71, 0.4)' },
-    '&.Mui-focused fieldset': { borderColor: '#74b9ff' },
+    '& fieldset': { borderColor },
+    '&:hover fieldset': { borderColor: hoverBorderColor },
+    '&.Mui-focused fieldset': { borderColor: accentColor },
   },
-}
+})
 
 export default function AccountPage() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const { user, userRole } = useAuth()
-  const c = darkColors
+  const { mode, toggleMode } = useHubThemeMode()
+  const c = useHubColors()
+  const inputSx = getInputSx(c.topBarBorder, c.cardBorderHover, c.surfaceContainer, c.primary)
   const avatarLabel = useMemo(() => {
     return user?.displayName?.trim()?.[0]?.toUpperCase()
       || user?.email?.[0]?.toUpperCase()
@@ -87,9 +93,16 @@ export default function AccountPage() {
     <Box sx={{ minHeight: '100vh', bgcolor: c.contentBg, p: 3 }}>
       <Container maxWidth="sm">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
-          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/apps')} sx={{ mb: 3, textTransform: 'none', color: c.textSecondary }}>
-            Back to Apps
-          </Button>
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/apps')} sx={{ textTransform: 'none', color: c.textSecondary }}>
+              Back to Apps
+            </Button>
+            <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <IconButton onClick={toggleMode} sx={{ color: c.textSecondary, '&:hover': { backgroundColor: theme.palette.action.hover, color: c.textPrimary } }}>
+                {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           <Box sx={{ bgcolor: c.surface, borderRadius: '16px', p: 4, border: '1px solid', borderColor: c.divider }}>
             <Stack spacing={3}>

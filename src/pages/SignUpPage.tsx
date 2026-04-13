@@ -5,23 +5,24 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { motion } from 'framer-motion'
-import { darkColors } from '../theme/designTokens'
+import { useHubColors } from '../themeMode'
 
-const inputSx = {
+const getInputSx = (borderColor: string, hoverBorderColor: string, backgroundColor: string, accentColor: string) => ({
   '& .MuiOutlinedInput-root': {
-    bgcolor: '#1a1a1a',
+    bgcolor: backgroundColor,
     borderRadius: '12px',
-    '& fieldset': { borderColor: 'rgba(72, 72, 71, 0.2)' },
-    '&:hover fieldset': { borderColor: 'rgba(72, 72, 71, 0.4)' },
-    '&.Mui-focused fieldset': { borderColor: '#74b9ff' },
+    '& fieldset': { borderColor },
+    '&:hover fieldset': { borderColor: hoverBorderColor },
+    '&.Mui-focused fieldset': { borderColor: accentColor },
   },
-}
+})
 
 export default function SignUpPage() {
   const { role } = useParams<{ role: 'student' | 'teacher' }>()
   const navigate = useNavigate()
   const { signUpStudent, signUpTeacher, signInWithGoogle, user } = useAuth()
-  const c = darkColors
+  const c = useHubColors()
+  const inputSx = getInputSx(c.topBarBorder, c.cardBorderHover, c.surfaceContainer, c.primary)
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')

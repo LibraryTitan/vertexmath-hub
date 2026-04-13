@@ -12,6 +12,9 @@ import TeacherClasses from './pages/teacher/TeacherClasses'
 import TeacherAssignments from './pages/teacher/TeacherAssignments'
 import TeacherAnalytics from './pages/teacher/TeacherAnalytics'
 import TeacherQuestionBanks from './pages/teacher/TeacherQuestionBanks'
+import ClassDetailPage from './pages/teacher/ClassDetailPage'
+import AssignmentDetailPage from './pages/teacher/AssignmentDetailPage'
+import StudentDetailPage from './pages/teacher/StudentDetailPage'
 import AdminOverview from './pages/admin/AdminOverview'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminOrganizations from './pages/admin/AdminOrganizations'
@@ -52,7 +55,10 @@ export default function App() {
       >
         <Route index element={<TeacherOverview />} />
         <Route path="classes" element={<TeacherClasses />} />
+        <Route path="classes/:code" element={<ClassDetailPage />} />
+        <Route path="students/:uid" element={<StudentDetailPage />} />
         <Route path="assignments" element={<TeacherAssignments />} />
+        <Route path="assignments/:classCode/:assignmentId" element={<AssignmentDetailPage />} />
         <Route path="analytics" element={<TeacherAnalytics />} />
         <Route path="question-banks" element={<TeacherQuestionBanks />} />
       </Route>

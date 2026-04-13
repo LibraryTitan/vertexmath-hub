@@ -4,7 +4,9 @@ import MenuBookIcon from '@mui/icons-material/MenuBook'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { motion } from 'framer-motion'
-import { darkColors, motion as motionTokens } from '../theme/designTokens'
+import { motion as motionTokens } from '../theme/designTokens'
+import VertexMathLogo from '../components/branding/VertexMathLogo'
+import { useHubColors } from '../themeMode'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -16,7 +18,7 @@ export default function LandingPage() {
     return null
   }
 
-  const c = darkColors
+  const c = useHubColors()
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', bgcolor: c.contentBg, p: 3 }}>
@@ -24,7 +26,7 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 350, damping: 18 }}>
           <Stack spacing={4} sx={{ alignItems: 'center' }}>
             {/* Logo */}
-            <Box component="img" src="/logo/logo_transparent.png" alt="VertexMath" sx={{ height: 100, width: 'auto', objectFit: 'contain' }} />
+            <VertexMathLogo height={100} />
 
             <Typography variant="h3" sx={{
               textAlign: 'center',

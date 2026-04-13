@@ -1,15 +1,20 @@
-import { Box, Container, Typography, Grid, CardContent, Stack, Button, Avatar, Chip } from '@mui/material'
+import { Box, Container, Typography, Grid, CardContent, Stack, Button, Avatar, Chip, IconButton, Tooltip } from '@mui/material'
 import SchoolIcon from '@mui/icons-material/School'
 import DescriptionIcon from '@mui/icons-material/Description'
 import GroupsIcon from '@mui/icons-material/Groups'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import LogoutIcon from '@mui/icons-material/Logout'
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded'
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded'
+import { useTheme } from '@mui/material/styles'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { getCustomTokenForRedirect } from '../sso'
 import { motion } from 'framer-motion'
-import { darkColors, motion as motionTokens } from '../theme/designTokens'
+import { motion as motionTokens } from '../theme/designTokens'
+import VertexMathLogo from '../components/branding/VertexMathLogo'
+import { useHubColors, useHubThemeMode } from '../themeMode'
 
 type HubApp = {
   id: string
@@ -63,8 +68,10 @@ const apps: HubApp[] = [
 
 export default function AppsPage() {
   const navigate = useNavigate()
+  const theme = useTheme()
   const { user, userRole, firstName, signOut } = useAuth()
-  const c = darkColors
+  const { mode, toggleMode } = useHubThemeMode()
+  const c = useHubColors()
 
   const handleAppClick = async (app: HubApp) => {
     if (app.route) {
@@ -116,8 +123,13 @@ export default function AppsPage() {
         bgcolor: c.topBarBg,
         backdropFilter: 'blur(12px)',
       }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: c.primary }}>VertexMath</Typography>
+        <VertexMathLogo height={32} to="/apps" />
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <IconButton onClick={toggleMode} sx={{ color: c.textSecondary, '&:hover': { backgroundColor: theme.palette.action.hover, color: c.textPrimary } }}>
+              {mode === 'dark' ? <LightModeRoundedIcon fontSize="small" /> : <DarkModeRoundedIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
           <Button size="small" startIcon={<AccountCircleIcon />} onClick={() => navigate('/account')} sx={{ textTransform: 'none', color: c.textSecondary }}>
             Account
           </Button>

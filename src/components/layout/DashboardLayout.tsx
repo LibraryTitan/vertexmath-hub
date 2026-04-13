@@ -1,15 +1,16 @@
 import { Box } from '@mui/material'
 import { Outlet } from 'react-router-dom'
-import { darkColors, layout } from '../../theme/designTokens'
+import { layout } from '../../theme/designTokens'
 import DashboardSidebar from './DashboardSidebar'
 import DashboardTopBar from './DashboardTopBar'
+import { useHubColors } from '../../themeMode'
 
 interface DashboardLayoutProps {
   role: 'teacher' | 'admin'
 }
 
 export default function DashboardLayout({ role }: DashboardLayoutProps) {
-  const c = darkColors
+  const c = useHubColors()
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: c.background }}>
