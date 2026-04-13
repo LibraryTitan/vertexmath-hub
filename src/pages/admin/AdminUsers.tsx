@@ -82,12 +82,14 @@ export default function AdminUsers() {
           placeholder="Search by name, email, or username..."
           size="small"
           sx={{ flex: 1, minWidth: 250 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            },
           }}
         />
         <FormControl size="small" sx={{ minWidth: 140 }}>

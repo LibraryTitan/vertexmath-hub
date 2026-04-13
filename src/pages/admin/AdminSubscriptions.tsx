@@ -69,12 +69,14 @@ export default function AdminSubscriptions() {
         size="small"
         sx={{ mb: 3, maxWidth: 420 }}
         fullWidth
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          },
         }}
       />
 

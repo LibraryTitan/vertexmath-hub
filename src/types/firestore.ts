@@ -62,6 +62,21 @@ export interface AssignmentDoc {
   assignedAt: Timestamp
   teacherUid: string
   settings: AssignmentSettings
+  status?: 'active' | 'draft' | 'closed'
+}
+
+export interface CreateAssignmentInput {
+  classCode: string
+  type: AssignmentType
+  title: string
+  bankId?: string
+  bankPath?: string
+  questionIds?: string[]
+  questionCount: number
+  lessonFile?: string
+  lessonName?: string
+  dueDate: Date
+  settings: AssignmentSettings
 }
 
 // ─── Progress ────────────────────────────────────────────────────
@@ -83,6 +98,7 @@ export interface StudentProgress {
   questions: Record<string, QuestionProgress>
   totalCorrect: number
   totalQuestions: number
+  totalAttempted: number
   progressPercent: number
 }
 
@@ -120,15 +136,20 @@ export interface BankQuestion {
 
 export interface ClassAnalytics {
   totalStudents: number
+  totalAssignments: number
   submittedCount: number
   averageScore: number
-  perQuestion: Record<string, QuestionAnalytics>
+  completionRate: number
+  perQuestion: QuestionAnalytics[]
 }
 
 export interface QuestionAnalytics {
+  questionId: string
+  correctCount: number
+  totalAttempts: number
   correctRate: number
   avgAttempts: number
-  avgTimeSpent: number
+  avgTimeMs: number
 }
 
 // ─── Subscription / Entitlement ──────────────────────────────────

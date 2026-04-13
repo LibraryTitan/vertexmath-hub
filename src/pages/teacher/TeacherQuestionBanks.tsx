@@ -358,12 +358,14 @@ export default function TeacherQuestionBanks() {
             size="small"
             fullWidth
             sx={{ mb: 2, maxWidth: 400 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: c.textMuted, fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 

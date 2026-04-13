@@ -3,8 +3,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  query,
-  where,
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import type {
@@ -21,11 +19,12 @@ export async function getClassAnalytics(classCode: string): Promise<ClassAnalyti
     collection(db, 'classes', classCode, 'assignments')
   )
 
+  const totalAssignments = assignSnap.size
   let totalStudents = 0
   let submittedCount = 0
   let totalScore = 0
   let scoreCount = 0
-  const perQuestion: Record<string, QuestionAnalytics> = {}
+  const perQuestionMap: Record<string, { correct: number; total: number; attempts: number; time: number }> = {}
 
   for (const assignDoc of assignSnap.docs) {
     const progressSnap = await getDocs(
@@ -44,23 +43,36 @@ export async function getClassAnalytics(classCode: string): Promise<ClassAnalyti
       // Aggregate per-question stats
       if (prog.questions) {
         for (const [qId, qp] of Object.entries(prog.questions)) {
-          if (!perQuestion[qId]) {
-            perQuestion[qId] = { correctRate: 0, avgAttempts: 0, avgTimeSpent: 0 }
+          if (!perQuestionMap[qId]) {
+            perQuestionMap[qId] = { correct: 0, total: 0, attempts: 0, time: 0 }
           }
-          const pq = perQuestion[qId]
-          // Running averages — approximation for display
-          pq.correctRate = (pq.correctRate + (qp.correct ? 1 : 0)) / 2
-          pq.avgAttempts = (pq.avgAttempts + qp.attempts) / 2
-          pq.avgTimeSpent = (pq.avgTimeSpent + qp.timeSpent) / 2
+          const pq = perQuestionMap[qId]
+          pq.total++
+          if (qp.correct) pq.correct++
+          pq.attempts += qp.attempts
+          pq.time += qp.timeSpent
         }
       }
     }
   }
 
+  const perQuestion: QuestionAnalytics[] = Object.entries(perQuestionMap).map(([qId, c]) => ({
+    questionId: qId,
+    correctCount: c.correct,
+    totalAttempts: c.total,
+    correctRate: c.total > 0 ? Math.round((c.correct / c.total) * 100) : 0,
+    avgAttempts: c.total > 0 ? Math.round((c.attempts / c.total) * 10) / 10 : 0,
+    avgTimeMs: c.total > 0 ? Math.round(c.time / c.total) : 0,
+  }))
+
+  const completionRate = totalStudents > 0 ? Math.round((submittedCount / totalStudents) * 100) : 0
+
   return {
     totalStudents,
+    totalAssignments,
     submittedCount,
     averageScore: scoreCount > 0 ? Math.round((totalScore / scoreCount) * 100) : 0,
+    completionRate,
     perQuestion,
   }
 }
@@ -70,7 +82,7 @@ export async function getClassAnalytics(classCode: string): Promise<ClassAnalyti
 export async function getAssignmentAnalytics(
   classCode: string,
   assignmentId: string
-): Promise<{ progress: StudentProgress[]; perQuestion: Record<string, QuestionAnalytics> }> {
+): Promise<{ progress: StudentProgress[]; perQuestion: QuestionAnalytics[] }> {
   const progressSnap = await getDocs(
     collection(db, 'classes', classCode, 'assignments', assignmentId, 'progress')
   )
@@ -95,14 +107,14 @@ export async function getAssignmentAnalytics(
     }
   }
 
-  const perQuestion: Record<string, QuestionAnalytics> = {}
-  for (const [qId, c] of Object.entries(qCounts)) {
-    perQuestion[qId] = {
-      correctRate: c.total > 0 ? Math.round((c.correct / c.total) * 100) : 0,
-      avgAttempts: c.total > 0 ? Math.round((c.attempts / c.total) * 10) / 10 : 0,
-      avgTimeSpent: c.total > 0 ? Math.round(c.time / c.total) : 0,
-    }
-  }
+  const perQuestion: QuestionAnalytics[] = Object.entries(qCounts).map(([qId, ct]) => ({
+    questionId: qId,
+    correctCount: ct.correct,
+    totalAttempts: ct.total,
+    correctRate: ct.total > 0 ? Math.round((ct.correct / ct.total) * 100) : 0,
+    avgAttempts: ct.total > 0 ? Math.round((ct.attempts / ct.total) * 10) / 10 : 0,
+    avgTimeMs: ct.total > 0 ? Math.round(ct.time / ct.total) : 0,
+  }))
 
   return { progress, perQuestion }
 }
