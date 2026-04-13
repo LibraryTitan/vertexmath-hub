@@ -98,6 +98,14 @@ export default function TeacherAssignments() {
         type,
         title: title.trim(),
         teacherUid: user.uid,
+        questionCount: 0,
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
+        settings: {
+          shuffleQuestions: false,
+          showHints: true,
+          maxAttempts: 3,
+          showSolutionAfter: 'submit',
+        },
       }
       if (type === 'lesson' && lessonName.trim()) {
         input.lessonName = lessonName.trim()
