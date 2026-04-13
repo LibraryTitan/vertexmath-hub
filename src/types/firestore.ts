@@ -65,20 +65,6 @@ export interface AssignmentDoc {
   status?: 'active' | 'draft' | 'closed'
 }
 
-export interface CreateAssignmentInput {
-  classCode: string
-  type: AssignmentType
-  title: string
-  bankId?: string
-  bankPath?: string
-  questionIds?: string[]
-  questionCount: number
-  lessonFile?: string
-  lessonName?: string
-  dueDate: Date
-  settings: AssignmentSettings
-}
-
 // ─── Progress ────────────────────────────────────────────────────
 
 export interface QuestionProgress {

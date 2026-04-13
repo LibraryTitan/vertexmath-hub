@@ -24,8 +24,8 @@ import { FONT_HEADLINE, FONT_BODY, layout } from '../../theme/designTokens'
 import { useHubColors } from '../../themeMode'
 import { useAuth } from '../../AuthProvider'
 import { listenTeacherClasses } from '../../services/classService'
-import { listenClassAssignments, createAssignment } from '../../services/assignmentService'
-import type { ClassDoc, AssignmentDoc, CreateAssignmentInput } from '../../types/firestore'
+import { listenClassAssignments, createAssignment, type CreateAssignmentInput } from '../../services/assignmentService'
+import type { ClassDoc, AssignmentDoc } from '../../types/firestore'
 
 const MotionBox = motion.create(Box)
 
