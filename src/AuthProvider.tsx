@@ -9,9 +9,49 @@ import {
   deleteUser,
   type User,
 } from 'firebase/auth'
-import { doc, getDoc, setDoc, getDocs, query, collection, where, serverTimestamp, arrayUnion } from 'firebase/firestore'
+import { doc, getDoc, getDocFromServer, setDoc, getDocs, query, collection, where, serverTimestamp, arrayUnion } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import { setCrossAppSession, clearCrossAppSession, revokeAllSessions, exchangeSessionCookie, handleSSOToken } from './sso'
+
+const ROLE_CACHE_KEY = 'hub:lastResolvedRole'
+const FIRST_NAME_CACHE_KEY = 'hub:lastResolvedFirstName'
+const UID_CACHE_KEY = 'hub:lastResolvedUid'
+
+function isSupportedRole(role: unknown): role is 'student' | 'teacher' | 'orgAdmin' | 'superAdmin' {
+  return role === 'student' || role === 'teacher' || role === 'orgAdmin' || role === 'superAdmin'
+}
+
+function readCachedProfile(uid: string) {
+  if (typeof window === 'undefined') return { role: null, firstName: null }
+  const cachedUid = window.localStorage.getItem(UID_CACHE_KEY)
+  if (cachedUid !== uid) return { role: null, firstName: null }
+
+  const cachedRole = window.localStorage.getItem(ROLE_CACHE_KEY)
+  const cachedFirstName = window.localStorage.getItem(FIRST_NAME_CACHE_KEY)
+
+  return {
+    role: isSupportedRole(cachedRole) ? cachedRole : null,
+    firstName: cachedFirstName || null,
+  }
+}
+
+function writeCachedProfile(uid: string, role: string | null, firstName: string | null) {
+  if (typeof window === 'undefined') return
+
+  window.localStorage.setItem(UID_CACHE_KEY, uid)
+  if (role) window.localStorage.setItem(ROLE_CACHE_KEY, role)
+  else window.localStorage.removeItem(ROLE_CACHE_KEY)
+
+  if (firstName) window.localStorage.setItem(FIRST_NAME_CACHE_KEY, firstName)
+  else window.localStorage.removeItem(FIRST_NAME_CACHE_KEY)
+}
+
+function clearCachedProfile() {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(UID_CACHE_KEY)
+  window.localStorage.removeItem(ROLE_CACHE_KEY)
+  window.localStorage.removeItem(FIRST_NAME_CACHE_KEY)
+}
 
 interface AuthContextValue {
   user: User | null
@@ -46,24 +86,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        const cachedProfile = readCachedProfile(firebaseUser.uid)
+
         try {
-          const snap = await getDoc(doc(db, 'users', firebaseUser.uid))
+          const userRef = doc(db, 'users', firebaseUser.uid)
+          let snap
+          try {
+            snap = await getDocFromServer(userRef)
+          } catch {
+            snap = await getDoc(userRef)
+          }
+
           if (snap.exists()) {
             const data = snap.data()
-            setUserRole(data.role || 'student')
-            setFirstName(data.firstName || firebaseUser.displayName?.split(' ')[0] || null)
+            const resolvedRole = isSupportedRole(data.role) ? data.role : cachedProfile.role
+            const resolvedFirstName = data.firstName || cachedProfile.firstName || firebaseUser.displayName?.split(' ')[0] || null
+
+            setUserRole(resolvedRole)
+            setFirstName(resolvedFirstName)
+            writeCachedProfile(firebaseUser.uid, resolvedRole, resolvedFirstName)
             // Track Hub usage
-            await setDoc(doc(db, 'users', firebaseUser.uid), {
+            await setDoc(userRef, {
               apps: arrayUnion('hub'),
               lastLoginAt: serverTimestamp(),
             }, { merge: true }).catch(() => {})
           } else {
-            setUserRole(null)
-            setFirstName(firebaseUser.displayName?.split(' ')[0] || null)
+            const fallbackFirstName = cachedProfile.firstName || firebaseUser.displayName?.split(' ')[0] || null
+            setUserRole(cachedProfile.role)
+            setFirstName(fallbackFirstName)
+            writeCachedProfile(firebaseUser.uid, cachedProfile.role, fallbackFirstName)
           }
         } catch {
-          setUserRole(null)
-          setFirstName(null)
+          setUserRole(cachedProfile.role)
+          setFirstName(cachedProfile.firstName)
         }
         setUser(firebaseUser)
         setLoading(false)
@@ -74,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null)
           setUserRole(null)
           setFirstName(null)
+          clearCachedProfile()
           setLoading(false)
         }
         // If exchange succeeded, onAuthStateChanged will re-fire with the user
@@ -111,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, { merge: true })
       setUserRole('student')
       setFirstName(profile.firstName.trim())
+      writeCachedProfile(cred.user.uid, 'student', profile.firstName.trim())
       setCrossAppSession()
     } catch (err) {
       // Clean up auth user if Firestore write failed (but not for username-taken)
@@ -144,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, { merge: true })
       setUserRole('teacher')
       setFirstName(profile.firstName.trim())
+      writeCachedProfile(cred.user.uid, 'teacher', profile.firstName.trim())
       setCrossAppSession()
     } catch (err) {
       if ((err as Error).message !== 'Username is already taken') {
@@ -173,6 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }, { merge: true })
       setUserRole(role)
       setFirstName(first || '')
+      writeCachedProfile(cred.user.uid, role, first || '')
     } else if (!snap.exists()) {
       // No account exists and no role specified — sign out and require role selection
       await firebaseSignOut(auth)
@@ -182,14 +241,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // Existing account — set role immediately to avoid race with onAuthStateChanged
       const data = snap.data()
-      setUserRole(data.role || 'student')
-      setFirstName(data.firstName || cred.user.displayName?.split(' ')[0] || null)
+      const resolvedRole = isSupportedRole(data.role) ? data.role : readCachedProfile(cred.user.uid).role
+      const resolvedFirstName = data.firstName || readCachedProfile(cred.user.uid).firstName || cred.user.displayName?.split(' ')[0] || null
+      setUserRole(resolvedRole)
+      setFirstName(resolvedFirstName)
+      writeCachedProfile(cred.user.uid, resolvedRole, resolvedFirstName)
     }
     setCrossAppSession()
   }, [])
 
   const signOutFn = useCallback(async () => {
     clearCrossAppSession()
+    clearCachedProfile()
     await revokeAllSessions()
     await firebaseSignOut(auth)
   }, [])
