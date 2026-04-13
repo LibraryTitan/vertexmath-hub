@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { CssBaseline, ThemeProvider, useTheme } from '@mui/material'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { onAuthStateChanged, type User } from 'firebase/auth'
@@ -54,12 +54,20 @@ export function HubThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Save to localStorage + Firestore
+  // Track whether mode has been user-changed (not initial load)
+  const modeChangedByUser = useRef(false)
+  const prevMode = useRef(mode)
+
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, mode)
     document.documentElement.style.colorScheme = mode
-    // Sync to Firestore if authenticated
-    if (currentUser) {
+    // Only sync to Firestore when user explicitly toggles theme, not on initial load
+    if (currentUser && modeChangedByUser.current) {
       setDoc(doc(db, 'users', currentUser.uid), { themeMode: mode }, { merge: true }).catch(() => {})
+    }
+    if (prevMode.current !== mode) {
+      modeChangedByUser.current = true
+      prevMode.current = mode
     }
   }, [mode, currentUser])
 
