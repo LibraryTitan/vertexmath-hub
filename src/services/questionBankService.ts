@@ -32,20 +32,28 @@ export async function fetchMasterIndex(forceRefresh = false): Promise<BankEntry[
   const xml = await fetchStorageText('questionBanks/master.xml')
 
   const entries: BankEntry[] = []
-  const bankRegex = /<Bank\s[^>]*\/>/gi
+  // Match <Bank id="...">...</Bank> blocks (child-element format)
+  const bankRegex = /<Bank\s[^>]*>[\s\S]*?<\/Bank>/gi
   let match: RegExpExecArray | null
   while ((match = bankRegex.exec(xml)) !== null) {
-    const tag = match[0]
+    const block = match[0]
+    const bankId = parseXmlAttr(block, 'id')
+    // Derive section from bank ID: last 2-4 chars encode section (e.g., A1-MGH-0101 → "01.01")
+    const idParts = bankId.split('-')
+    const numericPart = idParts.length >= 3 ? idParts[idParts.length - 1] : ''
+    const sectionNum = numericPart.length === 4
+      ? `${numericPart.slice(0, 2)}.${numericPart.slice(2)}`
+      : numericPart
     entries.push({
-      id: parseXmlAttr(tag, 'ID'),
-      path: parseXmlAttr(tag, 'Path'),
-      subject: parseXmlAttr(tag, 'Subject'),
-      chapter: parseXmlAttr(tag, 'Chapter'),
-      section: parseXmlAttr(tag, 'Section') || parseXmlAttr(tag, 'Lesson'),
-      title: parseXmlAttr(tag, 'Title'),
-      book: parseXmlAttr(tag, 'Book'),
-      tags: parseXmlAttr(tag, 'Tags'),
-      questionCount: parseInt(parseXmlAttr(tag, 'QuestionCount') || '0', 10),
+      id: bankId,
+      path: getTagContent(block, 'Path'),
+      subject: getTagContent(block, 'Subject'),
+      chapter: getTagContent(block, 'Chapter'),
+      section: sectionNum,
+      title: getTagContent(block, 'Title'),
+      book: getTagContent(block, 'Book'),
+      tags: getTagContent(block, 'Tags'),
+      questionCount: parseInt(getTagContent(block, 'QuestionCount') || '0', 10),
     })
   }
 
@@ -60,7 +68,11 @@ const bankCache = new Map<string, BankQuestion[]>()
 export async function fetchQuestionBank(bankPath: string): Promise<BankQuestion[]> {
   if (bankCache.has(bankPath)) return bankCache.get(bankPath)!
 
-  const xml = await fetchStorageText(bankPath)
+  // Paths from master.xml are relative (e.g., "A1-MGH/file.xml"), need Storage prefix
+  const storagePath = bankPath.startsWith('questionBanks/')
+    ? bankPath
+    : `questionBanks/${bankPath}`
+  const xml = await fetchStorageText(storagePath)
 
   const questions: BankQuestion[] = []
   const qRegex = /<Question[\s\S]*?<\/Question>/gi
@@ -127,10 +139,15 @@ export async function resolveQuestionImage(
   imagePath: string,
   bankPath: string
 ): Promise<string> {
-  // Normalize: if relative, resolve against bank's directory
+  // Bank paths from master.xml are relative (e.g., "A1-MGH/file.xml");
+  // ensure we resolve within the questionBanks/ Storage prefix
+  const normalizedBankPath = bankPath.startsWith('questionBanks/')
+    ? bankPath
+    : `questionBanks/${bankPath}`
+
   let fullPath = imagePath
   if (!imagePath.startsWith('questionBanks/')) {
-    const bankDir = bankPath.substring(0, bankPath.lastIndexOf('/') + 1)
+    const bankDir = normalizedBankPath.substring(0, normalizedBankPath.lastIndexOf('/') + 1)
     fullPath = bankDir + imagePath
   }
 

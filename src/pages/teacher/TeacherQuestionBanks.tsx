@@ -28,12 +28,12 @@ import type { BankEntry, BankQuestion } from '../../types/firestore'
 
 const MotionBox = motion.create(Box)
 
-// Subject display config
+// Subject display config — keys match <Subject> values in master.xml
 const SUBJECT_COLORS: Record<string, string> = {
-  A1: '#4CAF50',
-  A2: '#2196F3',
-  GEO: '#FF9800',
-  'PC-RTA': '#9C27B0',
+  'Algebra 1': '#4CAF50',
+  'Algebra 2': '#2196F3',
+  Geometry: '#FF9800',
+  Precalculus: '#9C27B0',
   CC1: '#F44336',
   CC2: '#E91E63',
   CC3: '#00BCD4',
@@ -46,6 +46,7 @@ export default function TeacherQuestionBanks() {
   const { user } = useAuth()
   const [allBanks, setAllBanks] = useState<BankEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [entitlements, setEntitlements] = useState<Record<string, boolean>>({})
 
   // Drill-down state
@@ -60,10 +61,16 @@ export default function TeacherQuestionBanks() {
 
   // Load master index
   useEffect(() => {
-    fetchMasterIndex().then((banks) => {
-      setAllBanks(banks)
-      setLoading(false)
-    })
+    fetchMasterIndex()
+      .then((banks) => {
+        setAllBanks(banks)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('Failed to load question banks:', err)
+        setLoadError(err instanceof Error ? err.message : 'Failed to load question banks')
+        setLoading(false)
+      })
   }, [])
 
   // Check entitlements for each subject
@@ -191,6 +198,19 @@ export default function TeacherQuestionBanks() {
           <CircularProgress size={24} />
           <Typography sx={{ fontFamily: FONT_BODY, color: c.textSecondary }}>Loading question banks...</Typography>
         </Box>
+      </Box>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <Box>
+        <Typography sx={{ fontFamily: FONT_HEADLINE, fontWeight: 700, fontSize: '1.5rem', color: c.textPrimary, mb: 1 }}>
+          Question Banks
+        </Typography>
+        <Typography sx={{ fontFamily: FONT_BODY, color: '#F44336', mt: 2 }}>
+          {loadError}
+        </Typography>
       </Box>
     )
   }
